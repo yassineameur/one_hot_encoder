@@ -35,7 +35,7 @@ The use of this library is very easy. There are only two methods to use: fit and
 ```
 from one_hot_encoder.encoder import Encoder
 
-encoder = Encoder()
+encoder = Encoder(prefix_sep='_', drop_first=False, dummy_na=False, verbose=0)
 encoder.fit(train_data)
 
 train_data_with_dummies = encoder.get_dummies(train_data)

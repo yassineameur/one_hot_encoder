@@ -1,7 +1,10 @@
+import logging
+import logger
+
 
 class Encoder:
 
-    def __init__(self, prefix_sep='_', drop_first=False, dummy_na=False):
+    def __init__(self, prefix_sep='_', drop_first=False, dummy_na=False, verbose=0):
 
         """
         Convert categorical variables into dummy/indicator variables
@@ -11,66 +14,27 @@ class Encoder:
 
         prefix_sep : string, default '_'
             If appending prefix, separator/delimiter to use.
-        dummy_na : bool, default False
-            Add a column to indicate NaNs, if False NaNs are ignored.
         drop_first : bool, default False
             Whether to get k-1 dummies out of k categorical levels by removing the
             first level.
+        dummy_na : bool, default False
+            Add a column to indicate NaNs, if False NaNs are ignored.
+        verbose : int. If 0, you will get all the logs on your console, otherwise, no logs
+            will be displayed.
 
-        Examples
+        Example
         --------
         >>> import pandas as pd
-        >>> s = pd.Series(list('abca'))
+        >>> df = pd.Series(data=[['a'], ['b'], ['c']], columns=['col'])
+        >>>
+        >>> encoder = Encoder()
+        >>> encoder.fit(df)
+        >>> df_dummies = encoder.get_dummies(df)
+           col_a  col_b  col_c
+        0  1        0       0
+        1  0        1       0
+        2  0        0       1
 
-        >>> pd.get_dummies(s)
-           a  b  c
-        0  1  0  0
-        1  0  1  0
-        2  0  0  1
-        3  1  0  0
-
-        >>> s1 = ['a', 'b', np.nan]
-
-        >>> pd.get_dummies(s1)
-           a  b
-        0  1  0
-        1  0  1
-        2  0  0
-
-        >>> pd.get_dummies(s1, dummy_na=True)
-           a  b  NaN
-        0  1  0    0
-        1  0  1    0
-        2  0  0    1
-
-        >>> df = pd.DataFrame({'A': ['a', 'b', 'a'], 'B': ['b', 'a', 'c'],
-        ...                    'C': [1, 2, 3]})
-
-        >>> pd.get_dummies(df, prefix=['col1', 'col2'])
-           C  col1_a  col1_b  col2_a  col2_b  col2_c
-        0  1       1       0       0       1       0
-        1  2       0       1       1       0       0
-        2  3       1       0       0       0       1
-
-        >>> pd.get_dummies(pd.Series(list('abcaa')))
-           a  b  c
-        0  1  0  0
-        1  0  1  0
-        2  0  0  1
-        3  1  0  0
-        4  1  0  0
-
-        >>> pd.get_dummies(pd.Series(list('abcaa')), drop_first=True)
-           b  c
-        0  0  0
-        1  1  0
-        2  0  1
-        3  0  0
-        4  0  0
-
-        See Also
-        --------
-        Series.str.get_dummies
         """
 
         self.prefix_sep = prefix_sep
@@ -80,6 +44,10 @@ class Encoder:
         self.categories_by_column = {}
         self.columns = None
 
+        self.logger = logger.getLogger()
+        if verbose != 0:
+            self.logger.setLevel(logging.DEBUG)
+
     def _get_columns_to_encode(self, data, columns):
         """
         :param data: pandas Dataframe.
@@ -87,8 +55,9 @@ class Encoder:
         """
         if columns:
             self.columns = columns
-            return
-        self.columns = list(data.select_dtypes('object').columns)
+        else:
+            self.columns = list(data.select_dtypes('object').columns)
+        self.logger.debug('The columns that will be encoded : {}'.format(self.columns))
 
     def _get_categories_for_column(self, data, column):
         """
@@ -114,6 +83,7 @@ class Encoder:
         self.categories_by_column = {
             column: self._get_categories_for_column(data, column) for column in self.columns
             }
+        self.logger.debug('Categories by column : {}'.format(self.categories_by_column))
 
     def _get_category_column_name(self, category, column, columns_list):
         """
@@ -127,6 +97,9 @@ class Encoder:
         if category_column_name not in columns_list:
             return category_column_name
 
+        self.logger.debug('Trying to find another column name for the category {} of column {}'.format(
+            category, column
+        ))
         index = 0
         while '{}{}{}'.format(category_column_name, self.prefix_sep, index) in columns_list:
             index += 1
@@ -145,6 +118,7 @@ class Encoder:
 
         self._get_columns_to_encode(data, columns)
         self._get_categories_by_column(data)
+        self.logger.debug('The data is fitted with success.')
 
     def get_dummies(self, data, edit=False):
         """
@@ -162,8 +136,12 @@ class Encoder:
         data_columns = list(data_to_edit.columns)
 
         for column in self.columns:
+            self.logger.debug('Getting dummies for column {}'.format(column))
             categories = self.categories_by_column[column]
             for category in categories:
+                self.logger.debug('Getting values for category {} of column {}'.format(
+                    category, column
+                ))
                 category_column_name = self._get_category_column_name(category, column, data_columns)
                 data_to_edit[category_column_name] = data_to_edit[column].map(
                     lambda x: 1 if str(x) == str(category) else 0)

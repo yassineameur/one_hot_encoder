@@ -17,7 +17,7 @@ class TestEncoder(unittest.TestCase):
             columns=['Name', 'Age', 'Address']
         )
 
-        encoder = Encoder()
+        encoder = Encoder(verbose=1)
         encoder.fit(df)
 
         # The encoder should understand that he must encode columns Name and Age
