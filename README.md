@@ -1,4 +1,5 @@
 [![Circle CI](https://circleci.com/gh/yassineameur/one_hot_encoder/tree/master.svg?style=shield&circle-token=5a94046f0073dd0b5c7150970b4b4dc817c4d220)](https://circleci.com/gh/yassineameur/one_hot_encoder/tree/master)
+[![codecov](https://codecov.io/gh/yassineameur/one_hot_encoder/branch/master/graph/badge.svg)](https://codecov.io/gh/yassineameur/one_hot_encoder)
 
 ## one_hot_encoder
 This library helps machine learning practicionnes to easily encode categorical variables when working with pandas datafames. Here are the added values of this library:
