@@ -1,0 +1,17 @@
+machine:
+
+  pre:
+    - sudo curl -sSL https://s3.amazonaws.com/circle-downloads/install-circleci-docker.sh | bash -s -- 1.10.0
+  python:
+    version: 3.6.2
+
+dependencies:
+  override:
+    - pip install --upgrade pip
+    - pip install -r requirements/dev.txt
+
+test:
+  override:
+    - py.test
+  post:
+    - pip install codecov && codecov -t $CODECOV_TOKEN|| echo "codecov upload failed"
