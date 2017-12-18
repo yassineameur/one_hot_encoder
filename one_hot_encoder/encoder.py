@@ -1,5 +1,6 @@
 import logging
-import logger
+
+from one_hot_encoder import logger
 
 
 class Encoder:
