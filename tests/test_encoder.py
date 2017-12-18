@@ -1,7 +1,9 @@
 import unittest
+
 import pandas as pd
-from encoder import Encoder
 from pandas.util.testing import assert_frame_equal
+
+from one_hot_encoder.encoder import Encoder
 
 
 class TestEncoder(unittest.TestCase):
